@@ -1,0 +1,37 @@
+import pandas as pd
+import numpy as np
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+# Generate a dataset
+np.random.seed(42)
+num_customers = 200
+purchase_frequency = np.random.uniform(1, 5, size=num_customers)
+purchase_amount = np.random.uniform(10, 100, size=num_customers)
+purchase_history = pd.DataFrame({'Frequency': purchase_frequency, 'Amount': purchase_amount})
+# Standardize the data
+scaler = StandardScaler()
+scaled_data = scaler.fit_transform(purchase_history)
+# Determine the optimal number of clusters using the Elbow Method
+wcss = []
+for i in range(1, 11):
+    kmeans = KMeans(n_clusters=i, init='k-means++', max_iter=300, n_init=10, random_state=42)
+    kmeans.fit(scaled_data)
+    wcss.append(kmeans.inertia_)
+plt.plot(range(1, 11), wcss)
+plt.title('Elbow Method for Optimal K')
+plt.xlabel('Number of Clusters')
+plt.ylabel('WCSS (Within-Cluster Sum of Squares)')
+plt.show()
+# Based on the Elbow Method, let's choose the optimal number of clusters
+optimal_k = 3
+# Apply K-means clustering
+kmeans = KMeans(n_clusters=optimal_k, init='k-means++', max_iter=300, n_init=10, random_state=42)
+clusters = kmeans.fit_predict(scaled_data)
+purchase_history['Cluster'] = clusters
+plt.figure(figsize=(4,6))
+plt.scatter(purchase_history['Frequency'], purchase_history['Amount'], c=purchase_history['Cluster'], cmap='viridis')
+plt.xlabel('Purchase Frequency')
+plt.ylabel('Purchase Amount')
+plt.title('Customer Segmentation using K-means Clustering')
+plt.show()
